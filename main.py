@@ -21,7 +21,7 @@ VALID_PORTION_SIZES = [size for size in PIZZA_AREA_PER_PERSON.keys()]
 def calculate_pizzas(pizza_radius, num_people, portion_size=VALID_PORTION_SIZES[0]):
     assert num_people >= 0, "Number of people needs to be positive."
     assert pizza_radius >= 0, "Pizza radius needs to be positive."
-    assert portion_size in VALID_PORTION_SIZES, f"Portion size '{potion_size}' is not in {VALID_PORTION_SIZES}"
+    assert portion_size in VALID_PORTION_SIZES, f"Portion size '{portion_size}' is not in {VALID_PORTION_SIZES}"
 
     pizza_area = pizza_radius ** 2 * pi
 
@@ -30,42 +30,45 @@ def calculate_pizzas(pizza_radius, num_people, portion_size=VALID_PORTION_SIZES[
 
     return num_pizzas
 
+
 def print_usage():
-    help_message= """
-    usage: 
+    help_message = """
+    usage:
         pizzactl calculate      : calculates the number of pizzas you need to order
         pizzactl serve          : spins up a server
     """
     print(help_message)
 
+
 @app.route('/')
 def home():
     return render_template('index.html', valid_portion_sizes=VALID_PORTION_SIZES)
 
+
 @app.route('/calculate', methods=['POST'])
 def calculate():
     pizza_radius = float(request.form['radius'])
-    pizza_area = pizza_radius ** 2 * pi
     number_of_people = int(request.form['num_people'])
     portion_size = str(request.form['portion_size'])
 
     try:
         num_pizzas = calculate_pizzas(
-                pizza_radius=pizza_radius, 
+                pizza_radius=pizza_radius,
                 num_people=number_of_people,
                 portion_size=portion_size
         )
     except Exception as error:
-        return render_template('error.html', message=error.message)
+        return render_template('error.html', message=str(error))
 
     return render_template('result.html', num_pizzas=num_pizzas)
+
 
 def main():
     parser = ArgumentParser(description='Calculate number of pizzas needed for a group.')
     subparsers = parser.add_subparsers(dest='command', help='Available commands')
 
     # Subparser for the 'calculate' command
-    calculate_parser = subparsers.add_parser('calculate', help='Calculate number of pizzas needed')
+    calculate_parser = subparsers.add_parser('calculate',help='Calculate number of pizzas needed')
     calculate_parser.add_argument('radius', type=float, help='Radius of the pizza in centimeters')
     calculate_parser.add_argument('num_people', type=int, help='Number of people in the group')
     calculate_parser.add_argument('--portion_size', type=str, choices=VALID_PORTION_SIZES,
