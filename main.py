@@ -81,6 +81,7 @@ def main():
     serve_parser.add_argument('--port', default=5000, type=int, help='Port name to listen for incomming request')
     serve_parser.add_argument('--host', default="localhost", type=str, help='Host name for the server to use')
     serve_parser.add_argument('--enable_debug', type=bool, help='Enables debug for the sever')
+    serve_parser.add_argument('--web_root', type=str, default='', help='The web root prefix if this is running behind a proxy')
 
     args = parser.parse_args()
 
@@ -92,6 +93,8 @@ def main():
             else:
                 print(ceil(num_pizzas))
         case 'serve':
+            if args.web_root:
+                app.config["APPLICATION_ROOT"] = args.web_root
             app.run(host=args.host, port=args.port, debug=args.enable_debug)
         case _:
             print_usage()
