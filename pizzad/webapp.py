@@ -65,6 +65,9 @@ class FlaskEngine(Engine):
     def run(self, host: str = 'localhost', port: int = 5000, enable_debug: bool = False):
         self.app.run(host=host, port=port, debug=enable_debug)
 
+    def to_flask_app(self):
+        return self.app
+
 
 class FlaskWebServer(WebServer):
     def __init__(self, blueprint: Blueprint):
@@ -73,3 +76,6 @@ class FlaskWebServer(WebServer):
 
     def is_compatible(self, engine, router):
         return isinstance(engine, FlaskEngine) and isinstance(router, FlaskBlueprintRouter)
+
+    def to_flask_app(self):
+        return self.engine.to_flask_app()

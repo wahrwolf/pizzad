@@ -1,8 +1,8 @@
 from math import ceil
 import click
 
-from calculations import calculate_pizzas, VALID_PORTION_SIZES
-from webapp import WebServer
+from .calculations import calculate_pizzas, VALID_PORTION_SIZES
+from .webapp import WebServer
 
 
 def build_order_commands():

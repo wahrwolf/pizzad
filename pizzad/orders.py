@@ -1,5 +1,5 @@
 from typing import Set, List, Optional
-from persistence import DictObject
+from .persistence import DictObject
 
 
 class Order(DictObject):
