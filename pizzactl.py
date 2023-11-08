@@ -12,7 +12,7 @@ if missing_dependencies:
         print(f"{ERROR_MESSAGE} {missing_dependencies})")
         sys.exit(1)
     else:
-        raise Exception(ERROR_MESSAGE, missing_dependencies)
+        raise NotImplementedError(ERROR_MESSAGE, missing_dependencies)
 else:
     from pizzad.cli import build_cli
     from pizzad.web.server import FlaskWebServer
