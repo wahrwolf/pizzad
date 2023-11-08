@@ -10,7 +10,7 @@ To install the Pizza Calculator, follow these steps:
 
 1. Make sure you have Python installed on your system. If not, you can download it from the official Python website: [https://www.python.org/downloads/](https://www.python.org/downloads/)
 
-2. Clone the repository or download the source code from [GitHub](https://github.com/your-repo-link).
+2. Clone the repository or download the source code from [GitHub](https://github.com/wahrowlf/pizzad).
 
 3. Open a terminal or command prompt and navigate to the project directory.
 
@@ -49,7 +49,7 @@ To use the Pizza Calculator, follow these steps:
 2. Start the Flask application by running the following command:
 
    ```bash
-   python main.py
+   python pizzactl.py server run
    ```
 
 3. Open a web browser and go to [http://localhost:5000](http://localhost:5000).
@@ -76,7 +76,6 @@ If you encounter any issues while using the Pizza Calculator, please follow thes
 
 3. If the application is not running, make sure you have followed the installation steps correctly and all the dependencies are installed.
 
-4. If you still encounter issues, please contact our support team at support@chatdev.com for further assistance.
 
 ## Conclusion
 
