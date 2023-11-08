@@ -1,4 +1,6 @@
-from enum import Enum, auto
+from enum import Enum
+from typing import Optional
+
 from pizzad.notification import Observer, Event
 from pizzad.persistence import DictObject
 
@@ -11,16 +13,16 @@ class UserType(Enum):
 
 
 class User(Observer, DictObject):
-    id: str
     name: str
     type: UserType
 
+    def __init__(self, name: str, type: Optional[UserType] = None):
+        super().__init__()
+        self.name = name
+        self.type = type if type else UserType.NORMAL
+
     def set_name(self, name: str):
         self.name = name
-        return self
-
-    def set_id(self, id: str):
-        self.id = id
         return self
 
     def set_type(self, type: UserType):
@@ -39,7 +41,6 @@ class User(Observer, DictObject):
         """
         return {
                 'name': self.name,
-                'id': self.id,
                 'type': self.type,
                 }
 
@@ -51,6 +52,11 @@ class User(Observer, DictObject):
             dictionary (dict): Dictionary containing order information.
         """
         self.name = dictionary['name']
-        self.id = dictionary['id']
         self.type = UserType[dictionary['type']]
         return self
+
+
+class UserFactory:
+    @staticmethod
+    def create_user(name: str = "<unknown>", type: UserType = UserType.UNKNOWN) -> User:
+        return User(name=name, type=type)

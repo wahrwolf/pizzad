@@ -19,10 +19,16 @@ class PersistenceManager():
         instance.set_domain(domain)
         self.strategy.save_instance(instance)
 
-    def load_instance(self, uuid: UUID, target_class):
+    def load_instance(self, uuid: Optional[UUID], target_class):
         if not isclass(target_class):
             raise NotImplementedError
         instance = InstanceFactory.create_instance_from_class(target_class)
+
+        if uuid is None:
+            uuid = self.strategy.pick_any_uuid(
+                    InstanceFactory.build_domain_name_from_object(instance))
+            print(uuid)
+
         instance.set_uuid(uuid)
         self.update_instance(instance)
         return instance

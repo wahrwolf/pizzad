@@ -139,4 +139,4 @@ class Order(DictObject):
 class OrderFactory:
     @staticmethod
     def create_order(name: Optional[str] = None, tags: Optional[Set[str]] = None) -> Order:
-        return Order(name, tags, created_by=User().set_name("<system>").set_type(UserType.SYSTEM))
+        return Order(name, tags, created_by=User("<system>", UserType.SYSTEM))

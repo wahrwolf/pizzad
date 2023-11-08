@@ -1,8 +1,9 @@
 import json
 from os import mkdir
+from os.path import splitext
 from pathlib import Path
 from abc import ABC, abstractmethod
-from uuid import UUID
+from uuid import UUID, uuid4
 from typing import Dict
 
 from .models import Instance, InstanceFactory
@@ -14,7 +15,12 @@ class PersistenceStrategy(ABC):
     def save_instance(self, instance: Instance):
         pass
 
+    @abstractmethod
     def update_instance(self, instance: Instance) -> Instance:
+        pass
+
+    @abstractmethod
+    def pick_any_uuid(self, domain: str) -> UUID:
         pass
 
 
@@ -57,6 +63,7 @@ class PersistDictAsJSONStrategy(DictPersistenceStrategy):
             for directory in base_directory.parents[::-1]:
                 if not directory.exists():
                     mkdir(directory)
+            mkdir(base_directory)
 
         self.base_directory = base_directory
         self.encoding = encoding
@@ -84,3 +91,13 @@ class PersistDictAsJSONStrategy(DictPersistenceStrategy):
                 json.dump(data, file, indent=4)
         except Exception as error:
             raise error
+
+    def pick_any_uuid(self, domain: str) -> UUID:
+        domain_dir = Path(self.base_directory, domain)
+        if domain_dir.exists():
+            files = Path(self.base_directory, domain).glob('*.json')
+            if len(files) > 0:
+                uuid_string = splitext(str(files[0]))
+                return UUID("{" + uuid_string + "}")
+        return uuid4()
+

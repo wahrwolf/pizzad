@@ -23,6 +23,7 @@ class OrderManager(DictObject):
         if name not in self.orders:
             order = OrderFactory.create_order(name, tags)
             self.orders[name] = order
+        return self.orders[name]
 
     def register_participant(self,
                              name: str, participant: User,
@@ -36,8 +37,7 @@ class OrderManager(DictObject):
     def close_order(self, name: str):
         self.orders[name].close()
 
-    def get_orders(
-            self, query: str, tags: Optional[Set[str]] = None) -> List[Order]:
+    def get_orders(self, query: str = '') -> List[Order]:
         return [
                 order
                 for name, order in self.orders.items()
