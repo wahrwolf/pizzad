@@ -14,6 +14,10 @@ class Order(DictObject):
     opened_by: Optional[User]
     id: str
 
+    @staticmethod
+    def create_empty_instance():
+        return Order()
+
     def __init__(self,
                  name: Optional[str] = None, id: Optional[str] = None,
                  tags: Optional[Set[str]] = None,
@@ -26,6 +30,7 @@ class Order(DictObject):
             name (str): Name of the order.
             tags (Optional[Set[str]]): Set of tags associated with the order.
         """
+        super().__init__()
         self.name = name
         self.created_by = created_by
         self.id = id if id else name
@@ -76,12 +81,16 @@ class Order(DictObject):
         Returns:
             dict: Dictionary representation of the Order object.
         """
-        return {
+        data = {
                 'name': self.name,
                 'participants': self.participants,
                 'tags': list(self.tags),
-                'closed_since': self.closed_since.strftime('%s')
-                }
+        }
+
+        if self.is_closed():
+            data['closed_since'] = self.closed_since.strftime('%s')
+
+        return data
 
     def update_from_dict(self, dictionary: dict):
         """
@@ -93,7 +102,10 @@ class Order(DictObject):
         self.name = dictionary['name']
         self.participants = dictionary['participants']
         self.tags = set(dictionary['tags'])
-        self.closed_since = datetime.fromtimestamp(dictionary['closed_since'])
+
+        if 'closed_since' in dictionary:
+            self.closed_since = datetime.fromtimestamp(
+                    dictionary['closed_since'])
 
     def is_closed(self) -> bool:
         """
@@ -108,7 +120,7 @@ class Order(DictObject):
               closed_by: Optional[User] = None):
 
         assert not self.is_closed(), "Order is already closed!"
-        self.closed_since = closed_since if closed_since else datetime.now
+        self.closed_since = closed_since if closed_since else datetime.now()
         self.closed_by = closed_by
 
     def open(self, opened_by: Optional[User] = None):
