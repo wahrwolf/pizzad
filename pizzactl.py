@@ -2,8 +2,8 @@
 This is the main file of the flask application.
 It contains the routes and logic for calculating the number of pizzas needed.
 '''
-import pizzad
-missing_dependencies = pizzad.get_missing_dependencies()
+from pizzad import get_missing_dependencies
+missing_dependencies = get_missing_dependencies()
 if missing_dependencies:
     ERROR_MESSAGE = "ERROR: Missing dependenc"\
             f"{'y' if len(missing_dependencies) == 1 else 'ies'}!"
@@ -15,8 +15,8 @@ if missing_dependencies:
         raise Exception(ERROR_MESSAGE, missing_dependencies)
 else:
     from pizzad.cli import build_cli
-    from pizzad.webapp import FlaskWebServer
-    from pizzad.routes import routes_blueprint
+    from pizzad.web.server import FlaskWebServer
+    from pizzad.web.routes import routes_blueprint
 
 server = FlaskWebServer(routes_blueprint)
 app = server.to_flask_app()

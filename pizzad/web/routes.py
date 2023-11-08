@@ -1,5 +1,5 @@
 from flask import Blueprint, render_template, request
-from .calculations import calculate_pizzas, VALID_PORTION_SIZES
+from pizzad.calculations import calculate_pizzas, VALID_PORTION_SIZES
 
 routes_blueprint = Blueprint('pizzad', __name__)
 
