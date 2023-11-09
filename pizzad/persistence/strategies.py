@@ -20,7 +20,7 @@ class PersistenceStrategy(ABC):
         pass
 
     @abstractmethod
-    def pick_any_uuid(self, domain: str) -> UUID:
+    def pick_existing_uuid_or_create_new(self, domain: str) -> UUID:
         pass
 
 
@@ -49,7 +49,8 @@ class DictPersistenceStrategy(PersistenceStrategy):
             dictionary = self.read_dict(
                     uuid=instance.uuid, domain=instance.domain)
             instance.update_from_dict(dictionary)
-        except (ValueError, KeyError):
+        except (ValueError, KeyError) as error:
+            print(f"Could not update instance due to {error}")
             instance.update_from_dict(old_state)
         return instance
 
@@ -92,12 +93,12 @@ class PersistDictAsJSONStrategy(DictPersistenceStrategy):
         except Exception as error:
             raise error
 
-    def pick_any_uuid(self, domain: str) -> UUID:
+    def pick_existing_uuid_or_create_new(self, domain: str) -> UUID:
         domain_dir = Path(self.base_directory, domain)
         if domain_dir.exists():
-            files = Path(self.base_directory, domain).glob('*.json')
+            files = list(Path(self.base_directory, domain).glob('*.json'))
             if len(files) > 0:
-                uuid_string = splitext(str(files[0]))
-                return UUID("{" + uuid_string + "}")
+                uuid_string = files[0].stem
+                return UUID(uuid_string)
         return uuid4()
 

@@ -41,7 +41,7 @@ class User(Observer, DictObject):
         """
         return {
                 'name': self.name,
-                'type': self.type,
+                'type': self.type.value,
                 }
 
     def update_from_dict(self, dictionary: dict):

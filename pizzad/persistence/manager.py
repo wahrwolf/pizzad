@@ -22,12 +22,12 @@ class PersistenceManager():
     def load_instance(self, uuid: Optional[UUID], target_class):
         if not isclass(target_class):
             raise NotImplementedError
+        print(f"Loading {target_class.__name__}[{uuid}] from storage")
         instance = InstanceFactory.create_instance_from_class(target_class)
 
         if uuid is None:
-            uuid = self.strategy.pick_any_uuid(
+            uuid = self.strategy.pick_existing_uuid_or_create_new(
                     InstanceFactory.build_domain_name_from_object(instance))
-            print(uuid)
 
         instance.set_uuid(uuid)
         self.update_instance(instance)
@@ -35,5 +35,6 @@ class PersistenceManager():
 
     def update_instance(self, instance: Instance):
         instance.set_domain(InstanceFactory.build_domain_name_from_object(instance))
+        print(f"Update {instance.domain}[{instance.uuid}] from storage")
         instance = self.strategy.update_instance(instance)
         return instance

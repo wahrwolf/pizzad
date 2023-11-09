@@ -21,6 +21,9 @@ class UserManager(DictObject):
         if name not in self.users:
             user = UserFactory.create_user(name)
             self.users[name] = user
+        else:
+            user = self.users[name]
+        return user
 
     def to_dict(self):
         return {"users": {k: v.to_dict() for k, v in self.users.items()}}
@@ -28,7 +31,7 @@ class UserManager(DictObject):
     def update_from_dict(self, dictionary):
         self.users = {
                 k: UserFactory.create_user().update_from_dict(v)
-                for k, v in dictionary["users"]
+                for k, v in dictionary["users"].items()
         }
 
     def get_users(self, query: str = '') -> List[User]:

@@ -8,11 +8,11 @@ class Order(DictObject):
     """
     Represents a pizza order with a name, participants, and optional tags.
     """
+    name: str
     closed_since: Optional[datetime]
     closed_by: Optional[User]
     created_by: User
     opened_by: Optional[User]
-    id: str
 
     @staticmethod
     def create_empty_instance():
@@ -33,10 +33,11 @@ class Order(DictObject):
         super().__init__()
         self.name = name
         self.created_by = created_by
-        self.id = id if id else name
         self.participants = []
         self.tags = tags if tags else set()
         self.closed_since = None
+        self.opened_by = None
+        self.closed_by = None
 
     def register_participant(
             self, name: str, enforce_registration: bool = False):
@@ -99,13 +100,14 @@ class Order(DictObject):
         Args:
             dictionary (dict): Dictionary containing order information.
         """
+        print(f"Rehydrating Order from: {dictionary}")
         self.name = dictionary['name']
         self.participants = dictionary['participants']
         self.tags = set(dictionary['tags'])
 
         if 'closed_since' in dictionary:
             self.closed_since = datetime.fromtimestamp(
-                    dictionary['closed_since'])
+                    int(dictionary['closed_since']))
 
     def is_closed(self) -> bool:
         """

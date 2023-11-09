@@ -8,10 +8,17 @@ class OrderManager(DictObject):
     _instance = None
     orders: Dict
 
+    @staticmethod
+    def create_empty_instance():
+        return OrderManager()
+
     def __new__(cls):
         if cls._instance is None:
+            print("OrderManager: Found no earlier instances. Claiming lead!")
             cls._instance = super(OrderManager, cls).__new__(cls)
-            cls._instance.orders = []
+            cls._instance.orders = {}
+        else:
+            print("OrderManager: Found existing instances. Returning leading instance!")
         return cls._instance
 
     def __init__(self):
@@ -48,7 +55,10 @@ class OrderManager(DictObject):
         return {"orders": {k: v.to_dict() for k, v in self.orders.items()}}
 
     def update_from_dict(self, dictionary):
+        print(f"Rehydrating Order Manager from: {dictionary}")
         self.orders = {
-                k: OrderFactory.create_order().update_from_dict(v)
-                for k, v in dictionary["orders"]
+                k: OrderFactory.create_order(k).update_from_dict(v)
+                for k, v in dictionary["orders"].items()
         }
+        assert len(self.orders) == len(dictionary["orders"]), \
+            "All orders should be created from dict"

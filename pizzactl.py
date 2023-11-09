@@ -2,6 +2,9 @@
 This is the main file of the flask application.
 It contains the routes and logic for calculating the number of pizzas needed.
 '''
+from pathlib import Path
+from tempfile import gettempdir
+
 from pizzad import get_missing_dependencies
 missing_dependencies = get_missing_dependencies()
 if missing_dependencies:
@@ -14,8 +17,6 @@ if missing_dependencies:
     else:
         raise NotImplementedError(ERROR_MESSAGE, missing_dependencies)
 
-from pathlib import Path
-from tempfile import gettempdir
 
 from pizzad.cli import build_cli
 from pizzad.web.server import FlaskWebServer
@@ -30,22 +31,24 @@ server = FlaskWebServer(routes_blueprint)
 app = server.to_flask_app()
 
 
-
 def main():
     persistence_manager = PersistenceManager()
-    persistence_strategy = PersistDictAsJSONStrategy(Path(gettempdir(), __name__))
+    persistence_strategy = PersistDictAsJSONStrategy(Path(gettempdir(), "pizzad"))
     persistence_manager.set_strategy(persistence_strategy)
 
     try:
         order_manager = persistence_manager.load_instance(
                 uuid=None, target_class=OrderManager)
-    except Exception:
+    except FileNotFoundError:
+        print("Could not find existing Order Manager. Creating it now!")
         order_manager = OrderManager()
+    else:
+        print("Found existing Order Manager. Reuisng it!")
+    finally:
+        print(order_manager.to_dict())
 
     cli = build_cli(server, persistence_manager, order_manager)
     cli()
-
-    persistence_manager.save_instance(order_manager)
 
 
 if __name__ == '__main__':
