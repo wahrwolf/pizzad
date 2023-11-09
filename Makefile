@@ -1,4 +1,6 @@
-.PHONY: test
+.PHONY: test tests/*
 
-test:
-	python -m unittest discover pizzad/tests -p 'test_*.py'
+test: tests/
+
+tests/%:
+	python -m unittest discover pizzad/$@ -p 'test_*.py'
