@@ -52,7 +52,7 @@ class User(Observer, DictObject):
             dictionary (dict): Dictionary containing order information.
         """
         self.name = dictionary['name']
-        self.type = UserType[dictionary['type']]
+        self.type = UserType(dictionary['type'])
         return self
 
 

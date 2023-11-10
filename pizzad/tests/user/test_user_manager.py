@@ -1,5 +1,4 @@
 
-#pizzad/user/manager.py
 from typing import Dict, List
 import unittest
 from unittest.mock import Mock
@@ -39,17 +38,20 @@ class TestUserManager(unittest.TestCase):
         self.assertIn(name, manager.users)
         user = manager.users[name]
         self.assertEqual(user.name, name)
-        self.assertEqual(user.user_type, UserType.NORMAL)
+        self.assertEqual(user.type, UserType.NORMAL)
 
-    def test_get_users(self):
+    def test_get_some_users(self):
         name1 = "UserA"
         name2 = "UserB"
+        name3 = "Foo"
         manager = UserManager()
         user1 = manager.create_user_if_not_exist(name1)
         user2 = manager.create_user_if_not_exist(name2)
+        user3 = manager.create_user_if_not_exist(name3)
         users = manager.get_users(query="User")
         self.assertIn(user1, users)
         self.assertIn(user2, users)
+        self.assertNotIn(user3, users)
 
     def test_get_users_with_empty_query(self):
         name1 = "UserA"
@@ -60,5 +62,3 @@ class TestUserManager(unittest.TestCase):
         users = manager.get_users()
         self.assertIn(user1, users)
         self.assertIn(user2, users)
-
-#<---end tests--->
