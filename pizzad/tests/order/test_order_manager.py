@@ -46,7 +46,7 @@ class TestOrderManager(unittest.TestCase):
         participant_name = "UserA"
         participant = Mock(spec=User)
         self.order_manager.create_order_if_not_exist(order_name)
-        self.order_manager.register_participant(order_name, participant_name, participant)
+        self.order_manager.register_participant(order_name, participant)
         raise NotImplementedError
 
     def test_close_order(self):

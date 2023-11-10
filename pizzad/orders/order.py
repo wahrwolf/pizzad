@@ -1,10 +1,11 @@
 from datetime import datetime
-from typing import Set, List, Optional
-from pizzad.persistence import DictObject
+from typing import Set, Optional
+from pizzad.models import Entity
 from pizzad.user import User, UserType
+from pizzad.models import EntityFactory
 
 
-class Order(DictObject):
+class Order(Entity):
     """
     Represents a pizza order with a name, participants, and optional tags.
     """
@@ -14,12 +15,8 @@ class Order(DictObject):
     created_by: User
     opened_by: Optional[User]
 
-    @staticmethod
-    def create_empty_instance():
-        return Order()
-
     def __init__(self,
-                 name: Optional[str] = None, id: Optional[str] = None,
+                 name: Optional[str] = None,
                  tags: Optional[Set[str]] = None,
                  created_by: Optional[User] = None
                  ):
@@ -93,21 +90,45 @@ class Order(DictObject):
 
         return data
 
-    def update_from_dict(self, dictionary: dict):
+    def update_from_dict(self, data: dict):
         """
-        Updates Order object from a dictionary representation.
+        Updates Order object from a data representation.
 
         Args:
-            dictionary (dict): Dictionary containing order information.
+            data (dict): Dictionary containing order information.
         """
-        print(f"Rehydrating Order from: {dictionary}")
-        self.name = dictionary['name']
-        self.participants = dictionary['participants']
-        self.tags = set(dictionary['tags'])
+        self.name = data['name']
 
-        if 'closed_since' in dictionary:
+        for user_name, user_data in data['participants']:
+            user = EntityFactory(target_class
+        self.participants = data['participants']
+        self.tags = set(data['tags'])
+
+        if 'closed_since' in data:
             self.closed_since = datetime.fromtimestamp(
-                    int(dictionary['closed_since']))
+                    int(data['closed_since']))
+        else:
+            self.closed_since = None
+
+        if 'created_by' in data:
+            user = EntityFactory(target_class=User).create_entity()
+            user.update_from_dict(data['created_by'])
+        else:
+            user = None
+        self.created_by = user
+
+        if 'opened_by' in data:
+            user = EntityFactory(target_class=User).create_entity()
+            user.update_from_dict(data['opened_by'])
+        else:
+            user = None
+
+        if 'closed_by' in data:
+            user = EntityFactory(target_class=User).create_entity()
+            user.update_from_dict(data['closed_by'])
+        else:
+            user = None
+        self.created_by = user
 
     def is_closed(self) -> bool:
         """
