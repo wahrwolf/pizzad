@@ -33,3 +33,15 @@ class WahrwolfsPizzaConsumptionEstimationStrategy(
         radius = WahrwolfsPizzaConsumptionEstimationStrategy\
             .PIZZA_RADIUS_PER_PERSON[portion_size]
         return number_of_people * CircleAreaAlgorithm.calculate_area((radius,))
+
+
+class NomBaguetteConsumptionEstimationStrategy(ABC):
+    """
+    Natürliche Offensichtliche Mengenschätzung für Baguettes
+    5 Baguette für 10 Leute
+    60% * 5 Baguettes für 10 Leute als Baguette + Dip
+    30% * 5 Baguette für 10 Leute als Beilage
+    """
+    BAGUETTES_PER_GROUP_OF_FIVE = {
+            PortionSize.DINNER = 2.0/3.0 * 5 / 10
+    pass
