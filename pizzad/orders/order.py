@@ -1,96 +1,23 @@
 from datetime import datetime
-from uuid import UUID
+from functools import reduce
 from typing import Set, Optional
-from pizzad.models import Entity, DictObject
-from pizzad.user import User, UserType
-from pizzad.models import EntityFactory
+from pizzad.models import Entity
+from pizzad.food import Ingredient, Allergen
+from .models import Order, OrderOption, OrderOptionRegistry, User, OrderFactory
 
 
-class OrderMemento(DictObject):
-    """
-    Represents a frozen state of an order, than can be restored into an actual order
-    """
-    __name: str
-    __uuid: UUID
-    _was_closed_at: datetime
-    _was_created_at: datetime
-    _was_opened_at: datetime
-    _was_closed_by: User
-    _was_created_by: User
-
-    def to_dict(self) -> dict:
-        """
-        Converts Order object to a dictionary representation.
-
-        Returns:
-            dict: Dictionary representation of the Order object.
-        """
-        data = {
-                'name': self.name,
-                'participants': self.participants,
-                'tags': list(self.tags),
-        }
-
-        if self.is_closed():
-            data['closed_since'] = self.closed_since.strftime('%s')
-
-        return data
-
-    def update_from_dict(self, data: dict):
-        """
-        Updates Order object from a data representation.
-
-        Args:
-            data (dict): Dictionary containing order information.
-        """
-        self.name = data['name']
-
-        for user_name, user_data in data['participants']:
-            user = EntityFactory(target_class)
-        self.participants = data['participants']
-        self.tags = set(data['tags'])
-
-        if 'closed_since' in data:
-            self.closed_since = datetime.fromtimestamp(
-                    int(data['closed_since']))
-        else:
-            self.closed_since = None
-
-        if 'created_by' in data:
-            user = EntityFactory(target_class=User).create_entity()
-            user.update_from_dict(data['created_by'])
-        else:
-            user = None
-        self.created_by = user
-
-        if 'opened_by' in data:
-            user = EntityFactory(target_class=User).create_entity()
-            user.update_from_dict(data['opened_by'])
-        else:
-            user = None
-
-        if 'closed_by' in data:
-            user = EntityFactory(target_class=User).create_entity()
-            user.update_from_dict(data['closed_by'])
-        else:
-            user = None
-        self.created_by = user
-
-
-class Order(Entity):
+class OrderEntity(Order, Entity):
     """
     Represents a pizza order with a name, participants, and optional tags.
     """
     name: str
+    created_at: datetime
     closed_since: Optional[datetime]
-    closed_by: Optional[User]
-    created_by: User
-    opened_by: Optional[User]
+    open_since: Optional[datetime]
 
     def __init__(self,
                  name: Optional[str] = None,
                  tags: Optional[Set[str]] = None,
-                 created_by: Optional[User] = None
                  ):
         """
         Initializes an Order object.
@@ -101,39 +28,24 @@ class Order(Entity):
         """
         super().__init__()
         self.name = name
-        self.created_by = created_by
-        self.participants = []
+        self.registrations = {}
         self.tags = tags if tags else set()
+
+        self.created_at = datetime.now()
         self.closed_since = None
-        self.opened_by = None
-        self.closed_by = None
+        self.open_since = None
 
-    def register_participant(
-            self, name: str, enforce_registration: bool = False):
-        """
-        Registers a participant for the order.
+        self._options = OrderOptionRegistry()
 
-        Args:
-            name (str): Name of the participant.
-            enforce_registration (bool): If True, enforces participant
-                                         registration even if already
-                                         registered or order is closed
-        """
-        if enforce_registration or (
-                name not in self.participants and
-                not self.is_closed
-                ):
+    def register_user_for_option(self, participant: User, option: OrderOption):
+        if option not in self._options:
+            raise KeyError(
+                    "Can not register participant for option."
+                    f"Option [{option.uuid}] not part of this order!")
+        if option not in self.registrations:
+            self.registrations[option] = set()
 
-            self.participants.append(name)
-
-    def get_number_of_participants(self) -> int:
-        """
-        Returns the number of participants registered for the order.
-
-        Returns:
-            int: Number of participants.
-        """
-        return len(self.participants)
+        self.registrations[option].add(participant)
 
     def add_tag(self, tag: str):
         """
@@ -144,7 +56,55 @@ class Order(Entity):
         """
         self.tags.add(tag)
 
-    def is_closed(self) -> bool:
+    def get_options_by_query(self,
+                             name_pattern: str = "",
+                             with_ingredients:
+                                 Optional[set[Ingredient]] = None,
+                             without_ingredients:
+                                 Optional[set[Ingredient]] = None,
+                             without_allergenes:
+                                 Optional[set[Allergen]] = None,
+                             **kwargs) -> set[OrderOption]:
+        options = self.get_options()
+
+        if name_pattern:
+            options = {
+                    option for option in options
+                    if name_pattern in option.get_name()}
+
+        if with_ingredients:
+            options = {
+                    option for option in options
+                    if reduce(
+                        lambda has_ingredients, ingredient:
+                        has_ingredients and ingredient in option,
+                        with_ingredients, True
+                     )
+            }
+
+        if without_ingredients:
+            options = {
+                    option for option in options
+                    if reduce(
+                        lambda has_not_ingredients, ingredient:
+                        has_not_ingredients and ingredient not in option,
+                        without_ingredients, True
+                     )
+            }
+
+        if without_allergenes:
+            options = {
+                    option for option in options
+                    if reduce(
+                        lambda has_not_allergens, allergen:
+                        has_not_allergens and allergen not in option,
+                        without_allergenes, True
+                     )
+            }
+
+        return options
+
+    def is_closed_for_registration(self) -> bool:
         """
         Returns if the order was closed
 
@@ -153,27 +113,23 @@ class Order(Entity):
         """
         return bool(self.closed_since)
 
-    def close(self, closed_since: Optional[datetime] = None,
-              closed_by: Optional[User] = None):
+    def close_for_registration(self):
+        assert not self.is_closed_for_registration(), "Order is already closed!"
+        self.closed_since = datetime.now()
 
-        assert not self.is_closed(), "Order is already closed!"
-        self.closed_since = closed_since if closed_since else datetime.now()
-        self.closed_by = closed_by
-
-    def open(self, opened_by: Optional[User] = None):
-        assert self.is_closed(), "Order is not closed!"
+    def open_for_registration(self):
+        assert self.is_closed_for_registration(), "Order is not closed!"
         self.closed_since = None
-        self.closed_by = None
-        self.opened_by = opened_by
+        self.open_since = datetime.now()
 
     def __str__(self) -> str:
-        return f"Order[{self.name}]{'' if not self.tags else str(['#'+tag for tag in self.tags])}"
+        return f"Order[{self.uuid}]: {self.name}]"
 
     def __repr__(self) -> str:
-        return f"Order[{self.name}]{'' if not self.tags else str(['#'+tag for tag in self.tags])}"
+        return f"Order[{self.uuid}]: {self.name}]"
 
 
-class OrderFactory:
+class SimpleOrderFactory(OrderFactory):
     @staticmethod
-    def create_order(name: Optional[str] = None, tags: Optional[Set[str]] = None) -> Order:
-        return Order(name, tags, created_by=User("<system>", UserType.SYSTEM))
+    def create_order(name: str):
+        return OrderEntity(name)

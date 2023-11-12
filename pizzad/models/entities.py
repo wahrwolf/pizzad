@@ -15,7 +15,7 @@ class DictObject(ABC):
         raise NotImplementedError
 
 
-class Entity(DictObject):
+class Entity:
     uuid: UUID
     domain: str
 

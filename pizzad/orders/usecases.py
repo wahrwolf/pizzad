@@ -106,7 +106,11 @@ def get_all_available_options(registry: OrderRegistry):
             if not order.is_closed_for_registration()
     ]
 
-    available_options = reduce(lambda a, b: a.join(b), open_orders, set())
+    available_options = reduce(
+            lambda a, b: a.join(b.get_options()),
+            open_orders, set()
+    )
+
     return available_options
 
 

@@ -27,6 +27,9 @@ class UserFactory(ABC):
 
 
 class OrderOption(ABC):
+    _ingredients: set[Ingredient]
+    _allergenes: set[Allergen]
+
     @abstractmethod
     def get_allergies(self) -> set[Allergen]:
         raise NotImplementedError
@@ -39,6 +42,17 @@ class OrderOption(ABC):
     def add_ingredient(self, ingredient: Ingredient):
         raise NotImplementedError
 
+    @abstractmethod
+    def get_name(self) -> str:
+        raise NotImplementedError
+
+    def __contains__(self, value):
+        if isinstance(value, Ingredient):
+            return value in self._ingredients
+        elif isinstance(value, Allergen):
+            return value in self._allergenes
+        return False
+
 
 class OrderOptionFactory(ABC):
     @staticmethod
@@ -49,14 +63,20 @@ class OrderOptionFactory(ABC):
 
 
 class OrderOptionRegistry(Registry):
+    @abstractmethod
     def get_options_by_query(self, **kwargs) -> set[OrderOption]:
         raise NotImplementedError
 
 
 class Order(ABC):
-    @abstractmethod
+    _options: OrderOptionRegistry
+
     def add_option(self, option: OrderOption):
-        raise NotImplementedError
+        self._options.register_member(option)
+        return self
+
+    def get_options(self) -> set[OrderOption]:
+        return set(self._options.get_all_members())
 
     def get_options_by_query(self, **kwargs) -> set[OrderOption]:
         raise NotImplementedError

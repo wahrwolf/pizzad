@@ -16,7 +16,7 @@ class Singleton(Entity):
         return cls._instance
 
 
-class Registry(Singleton):
+class Registry(ABC):
     def register_member(self, entity: Entity):
         raise NotImplementedError
 

@@ -1,10 +1,10 @@
 from uuid import UUID
 from typing import Optional
 from .entities import Entity, EntityFactory
-from .pattern import Singleton
+from .pattern import Singleton, Registry
 
 
-class Controller(Singleton):
+class Controller(Singleton, Registry):
     _registry: dict
     _factory: EntityFactory
 
