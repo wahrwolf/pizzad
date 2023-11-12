@@ -1,5 +1,7 @@
-from .entities import Entity
 from abc import ABC, abstractmethod
+from uuid import UUID
+
+from .entities import Entity
 
 
 class Singleton(Entity):
@@ -12,6 +14,21 @@ class Singleton(Entity):
         if cls._instance is None:
             cls._instance = super(Singleton, cls).__new__(cls)
         return cls._instance
+
+
+class Registry(Singleton):
+    def register_member(self, entity: Entity):
+        raise NotImplementedError
+
+    def get_all_members(self) -> set[Entity]:
+        raise NotImplementedError
+
+    def get_member_by_id(self, uuid: UUID) -> Entity:
+        raise NotImplementedError
+
+    def delete_member_by_id(self, uuid: UUID) -> None:
+        raise NotImplementedError
+
 
 class Service(ABC):
     @abstractmethod
