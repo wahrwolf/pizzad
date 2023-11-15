@@ -2,8 +2,9 @@ from datetime import datetime
 from functools import reduce
 from typing import Set, Optional
 from pizzad.models import Entity
+from pizzad.models.implementations import DictRegistry
 from pizzad.food import Ingredient, Allergen
-from .models import Order, OrderOption, OrderOptionRegistry, User, OrderFactory
+from .models import Order, OrderOption, OrderOptionRegistry, User, OrderFactory, OrderRegistry
 
 
 class OrderEntity(Order, Entity):
@@ -14,6 +15,7 @@ class OrderEntity(Order, Entity):
     created_at: datetime
     closed_since: Optional[datetime]
     open_since: Optional[datetime]
+    _options: OrderOptionRegistry
 
     def __init__(self,
                  name: Optional[str] = None,
@@ -35,7 +37,8 @@ class OrderEntity(Order, Entity):
         self.closed_since = None
         self.open_since = None
 
-        self._options = OrderOptionRegistry()
+    def set_registry(self, registry: OrderOptionRegistry):
+        self._options = registry
 
     def register_user_for_option(self, participant: User, option: OrderOption):
         if option not in self._options:
@@ -55,54 +58,6 @@ class OrderEntity(Order, Entity):
             tag (str): Tag to be added.
         """
         self.tags.add(tag)
-
-    def get_options_by_query(self,
-                             name_pattern: str = "",
-                             with_ingredients:
-                                 Optional[set[Ingredient]] = None,
-                             without_ingredients:
-                                 Optional[set[Ingredient]] = None,
-                             without_allergenes:
-                                 Optional[set[Allergen]] = None,
-                             **kwargs) -> set[OrderOption]:
-        options = self.get_options()
-
-        if name_pattern:
-            options = {
-                    option for option in options
-                    if name_pattern in option.get_name()}
-
-        if with_ingredients:
-            options = {
-                    option for option in options
-                    if reduce(
-                        lambda has_ingredients, ingredient:
-                        has_ingredients and ingredient in option,
-                        with_ingredients, True
-                     )
-            }
-
-        if without_ingredients:
-            options = {
-                    option for option in options
-                    if reduce(
-                        lambda has_not_ingredients, ingredient:
-                        has_not_ingredients and ingredient not in option,
-                        without_ingredients, True
-                     )
-            }
-
-        if without_allergenes:
-            options = {
-                    option for option in options
-                    if reduce(
-                        lambda has_not_allergens, allergen:
-                        has_not_allergens and allergen not in option,
-                        without_allergenes, True
-                     )
-            }
-
-        return options
 
     def is_closed_for_registration(self) -> bool:
         """
@@ -127,9 +82,3 @@ class OrderEntity(Order, Entity):
 
     def __repr__(self) -> str:
         return f"Order[{self.uuid}]: {self.name}]"
-
-
-class SimpleOrderFactory(OrderFactory):
-    @staticmethod
-    def create_order(name: str):
-        return OrderEntity(name)

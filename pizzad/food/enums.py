@@ -36,5 +36,10 @@ class Ingredient(Enum):
                 return True
         return False
 
+    def __contains__(self, other) -> bool:
+        if isinstance(other, Allergen):
+            return other in self._allergenes
+        return False
+
     def get_allergenes(self) -> set[Allergen]:
         return self._allergenes

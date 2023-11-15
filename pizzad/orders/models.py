@@ -9,6 +9,7 @@ class User(ABC):
     def get_allergies(self) -> set[Allergen]:
         raise NotImplementedError
 
+    @abstractmethod
     def get_blacklisted_ingredients(self) -> set[Ingredient]:
         raise NotImplementedError
 
@@ -31,7 +32,7 @@ class OrderOption(ABC):
     _allergenes: set[Allergen]
 
     @abstractmethod
-    def get_allergies(self) -> set[Allergen]:
+    def get_allergenes(self) -> set[Allergen]:
         raise NotImplementedError
 
     @abstractmethod
@@ -79,7 +80,7 @@ class Order(ABC):
         return set(self._options.get_all_members())
 
     def get_options_by_query(self, **kwargs) -> set[OrderOption]:
-        raise NotImplementedError
+        return self._options.get_options_by_query(**kwargs)
 
     @abstractmethod
     def register_user_for_option(self, participant: User, option: OrderOption):
