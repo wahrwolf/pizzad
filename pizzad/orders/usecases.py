@@ -38,6 +38,7 @@ def create_new_user(user_name: str,
                     registry: UserRegistry
                     ) -> User:
     user = factory.create_user(name=user_name)
+    registry.register_member(user)
     return user
 
 

@@ -41,7 +41,7 @@ class OrderOptionDictRegistry(OrderOptionRegistry, DictRegistry):
             options = filter(
                     lambda option:
                     (without_allergenes not in option), options)
-        return options
+        return set(options)
 
 
 class OrderDictRegistry(DictRegistry, OrderRegistry):
@@ -70,4 +70,4 @@ class OrderDictRegistry(DictRegistry, OrderRegistry):
                     lambda order:
                     (with_participants in order), orders)
 
-        return orders
+        return set(orders)

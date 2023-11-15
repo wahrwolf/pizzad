@@ -53,7 +53,7 @@ class TestOrderUseCases(unittest.TestCase):
         delete_order_by_id(order_id, registry=self.order_registry)
         deleted_order = get_orders_by_query(
                 registry=self.order_registry, uuids=set([order_id]))
-        self.assertIsNone(deleted_order)
+        self.assertEqual(deleted_order, set())
 
     def test_get_orders_by_query(self):
         order_name_1 = "Test Order 1"
