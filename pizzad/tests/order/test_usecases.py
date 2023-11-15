@@ -3,7 +3,6 @@ import unittest
 from uuid import uuid4
 from pizzad.food import Ingredient
 
-from pizzad.user.abc import User
 from pizzad.user.factories import UserEntityFactory
 from pizzad.user.registries import UserDictRegistry
 
@@ -12,7 +11,6 @@ from pizzad.orders.factories import OrderEntityFactory, OrderOptionEntitiyFactor
 from pizzad.orders.registries import OrderDictRegistry, OrderOptionDictRegistry
 from pizzad.orders.usecases import (
     create_new_order, delete_order_by_id, get_orders_by_query,
-    create_new_user, get_users_by_query, delete_user_by_id,
     create_new_option_for_order, query_options_for_order,
     get_option_by_id, delete_option_by_id, add_option_to_order,
     open_order_for_participant_registration, register_participant_for_option,
@@ -67,27 +65,6 @@ class TestOrderUseCases(unittest.TestCase):
 
         # Search by query
         query_result = get_orders_by_query(self.order_registry, name="Test Order")
-        self.assertTrue(query_result)
-        self.assertEqual(len(query_result), 2)
-
-    def test_create_new_user(self):
-        user_name = "Test User"
-        user = create_new_user(user_name, self.user_factory, self.user_registry)
-        self.assertIsInstance(user, User)
-        self.assertEqual(user.name, user_name)
-
-    def test_get_users_by_query(self):
-        user_name_1 = "Test User 1"
-        user_name_2 = "Test User 2"
-        create_new_user(user_name_1,
-                        factory=self.user_factory,
-                        registry=self.user_registry)
-        create_new_user(user_name_2,
-                        factory=self.user_factory,
-                        registry=self.user_registry)
-
-        # Search by query
-        query_result = get_users_by_query(self.user_registry, name="Test User")
         self.assertTrue(query_result)
         self.assertEqual(len(query_result), 2)
 

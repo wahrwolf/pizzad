@@ -8,7 +8,7 @@ from uuid import UUID
 from typing import Optional
 from functools import reduce
 from pizzad.food import Ingredient
-from pizzad.user.abc import User, UserFactory, UserRegistry
+from pizzad.user.abc import User
 from .models import (
         Order, OrderRegistry, OrderFactory,
         OrderOption, OrderOptionRegistry, OrderOptionFactory)
@@ -31,24 +31,6 @@ def delete_order_by_id(uuid: UUID, registry: OrderRegistry):
 def get_orders_by_query(registry: OrderRegistry, **kwargs) -> set[Order]:
     orders = registry.get_orders_by_query(**kwargs)
     return orders
-
-
-def create_new_user(user_name: str,
-                    factory: UserFactory,
-                    registry: UserRegistry
-                    ) -> User:
-    user = factory.create_user(name=user_name)
-    registry.register_member(user)
-    return user
-
-
-def get_users_by_query(registry: UserRegistry, **kwargs) -> set[User]:
-    users = registry.get_users_by_query(**kwargs)
-    return users
-
-
-def delete_user_by_id(uuid: UUID, registry: UserRegistry):
-    registry.delete_member_by_id(uuid)
 
 
 def create_new_option_for_order(
