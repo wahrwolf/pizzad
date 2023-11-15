@@ -30,6 +30,41 @@ class Registry(ABC):
         raise NotImplementedError
 
 
+class Strategy(ABC):
+    @abstractmethod
+    def execute(self, **kwargs):
+        raise NotImplementedError
+
+
+class Context(ABC):
+    _strategy: Strategy
+
+    def set_strategy(self, strategy: Strategy):
+        self._strategy = strategy
+
+    def execute_strategy(self, **kwargs):
+        return self._strategy.execute(**kwargs)
+
+
+class Memento(ABC):
+    @abstractmethod
+    def restore(self) -> 'MementoOriginator':
+        raise NotImplementedError
+
+
+class MementoOriginator(ABC):
+    @abstractmethod
+    def save(self) -> Memento:
+        raise NotImplementedError
+
+
+class MementoCaretaker(ABC):
+    history: list[Memento]
+
+    def undo(self) -> MementoOriginator:
+        return self.history.pop().restore()
+
+
 class Service(ABC):
     @abstractmethod
     def accept(self, visitor: 'Visitor'):
