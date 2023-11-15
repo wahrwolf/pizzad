@@ -1,8 +1,9 @@
 from enum import Enum
 from typing import Optional
 
-from pizzad.notification import Observer, Event
-from pizzad.persistence import DictObject
+from pizzad.models import Entity
+from pizzad.food import Ingredient, Allergen
+from .abc import User
 
 
 class UserType(Enum):
@@ -10,16 +11,20 @@ class UserType(Enum):
     SYSTEM  = 1
     NONE    = 2
     NORMAL  = 3
+    REGULAR = NORMAL
 
 
-class User(Observer, DictObject):
+class UserEntity(User, Entity):
     name: str
     type: UserType
+    allergies: set[Allergen]
+    excluded_ingredients: set[Ingredient]
+    preferred_ingredients: set[Ingredient]
 
     def __init__(self, name: str, type: Optional[UserType] = None):
         super().__init__()
         self.name = name
-        self.type = type if type else UserType.NORMAL
+        self.type = type if type else UserType.UNKNOWN
 
     def set_name(self, name: str):
         self.name = name
@@ -29,34 +34,23 @@ class User(Observer, DictObject):
         self.type = type
         return self
 
-    def update(self, event: Event):
-        pass
+    def get_preferred_ingredients(self) -> set[Ingredient]:
+        return self.preferred_ingredients
 
-    def to_dict(self) -> dict:
-        """
-        Converts Order object to a dictionary representation.
+    def add_prefereed_ingredient(self, ingredient: Ingredient):
+        self.preferred_ingredients.add(ingredient)
 
-        Returns:
-            dict: Dictionary representation of the Order object.
-        """
-        return {
-                'name': self.name,
-                'type': self.type.value,
-                }
+    def remove_prefereed_ingredient(self, ingredient: Ingredient):
+        self.preferred_ingredients.remove(ingredient)
 
-    def update_from_dict(self, dictionary: dict):
-        """
-        Updates Order object from a dictionary representation.
+    def get_excluded_ingredients(self) -> set[Ingredient]:
+        return self.excluded_ingredients
 
-        Args:
-            dictionary (dict): Dictionary containing order information.
-        """
-        self.name = dictionary['name']
-        self.type = UserType(dictionary['type'])
-        return self
+    def add_excluded_ingredient(self, ingredient: Ingredient):
+        self.excluded_ingredients.add(ingredient)
 
+    def remove_excluded_ingredient(self, ingredient: Ingredient):
+        self.excluded_ingredients.remove(ingredient)
 
-class UserFactory:
-    @staticmethod
-    def create_user(name: str = "<unknown>", type: UserType = UserType.UNKNOWN) -> User:
-        return User(name=name, type=type)
+    def get_allergies(self) -> set[Allergen]:
+        return self.allergies
