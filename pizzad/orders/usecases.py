@@ -9,7 +9,7 @@ from typing import Optional
 from functools import reduce
 from pizzad.food import Ingredient
 from pizzad.user.abc import User
-from .models import (
+from .abc import (
         Order, OrderRegistry, OrderFactory,
         OrderOption, OrderOptionRegistry, OrderOptionFactory)
 

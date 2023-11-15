@@ -2,7 +2,7 @@ from typing import Optional
 from uuid import UUID
 from pizzad.models.implementations import DictRegistry
 from pizzad.food import Allergen, Ingredient
-from .models import OrderOption, OrderOptionRegistry, Order, OrderRegistry, User
+from .abc import OrderOption, OrderOptionRegistry, Order, OrderRegistry, User
 
 
 class OrderOptionDictRegistry(OrderOptionRegistry, DictRegistry):

@@ -6,7 +6,7 @@ from pizzad.food import Ingredient
 from pizzad.user.factories import UserEntityFactory
 from pizzad.user.registries import UserDictRegistry
 
-from pizzad.orders.models import Order,  OrderOption
+from pizzad.orders.abc import Order,  OrderOption
 from pizzad.orders.factories import OrderEntityFactory, OrderOptionEntitiyFactory
 from pizzad.orders.registries import OrderDictRegistry, OrderOptionDictRegistry
 from pizzad.orders.usecases import (

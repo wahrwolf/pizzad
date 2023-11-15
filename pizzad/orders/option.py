@@ -1,7 +1,7 @@
 from collections.abc import Collection
 from pizzad.models.entities import Entity
 from pizzad.food import Allergen, Ingredient
-from .models import OrderOption
+from .abc import OrderOption
 
 
 class OrderOptionEntitiy(OrderOption, Entity):

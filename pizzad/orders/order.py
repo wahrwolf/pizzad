@@ -2,7 +2,7 @@ from datetime import datetime
 from collections.abc import Collection
 from typing import Set, Optional
 from pizzad.models import Entity
-from .models import Order, OrderOption, OrderOptionRegistry, User
+from .abc import Order, OrderOption, OrderOptionRegistry, User
 
 
 class OrderEntity(Order, Entity):
