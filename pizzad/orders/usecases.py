@@ -15,8 +15,12 @@ from .models import (
 
 
 # Basic interactions with users, orders and options
-def cerate_new_order(order_name: str) -> Order:
-    order = OrderFactory.create_order(name=order_name)
+def create_new_order(order_name: str,
+                     factory: OrderFactory,
+                     registry: OrderRegistry
+                     ) -> Order:
+    order = factory.create_order(name=order_name)
+    registry.register_member(order)
     return order
 
 
@@ -29,8 +33,11 @@ def get_orders_by_query(registry: OrderRegistry, **kwargs) -> set[Order]:
     return orders
 
 
-def create_new_user(user_name: str) -> User:
-    user = UserFactory.create_user(name=user_name)
+def create_new_user(user_name: str,
+                    factory: UserFactory,
+                    registry: UserRegistry
+                    ) -> User:
+    user = factory.create_user(name=user_name)
     return user
 
 
@@ -44,8 +51,10 @@ def delete_user_by_id(uuid: UUID, registry: UserRegistry):
 
 
 def create_new_option_for_order(
-        order: Order, option_name: str, ingredients: set[Ingredient]):
-    option = OrderOptionFactory.create_option(
+        order: Order, option_name: str, ingredients: set[Ingredient],
+        factory: OrderOptionFactory
+        ) -> OrderOption:
+    option = factory.create_option(
             name=option_name, ingredients=ingredients)
     order.add_option(option)
     return order

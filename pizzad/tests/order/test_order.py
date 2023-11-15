@@ -1,5 +1,3 @@
-#pizzad/orders/order.py
-#<---begin import --->
 from datetime import datetime
 from typing import Set, List, Optional
 import unittest
@@ -9,8 +7,10 @@ from pizzad.user import User, UserType
 from pizzad.orders.order import Order, OrderFactory
 
 
-#<---begin tests -->
 class TestOrder(unittest.TestCase):
+    def setUp(self):
+        pass
+
     def test_create_empty_instance(self):
         order = Order.create_empty_instance()
         self.assertIsInstance(order, Order)
