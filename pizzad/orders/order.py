@@ -1,10 +1,8 @@
 from datetime import datetime
-from functools import reduce
+from collections.abc import Collection
 from typing import Set, Optional
 from pizzad.models import Entity
-from pizzad.models.implementations import DictRegistry
-from pizzad.food import Ingredient, Allergen
-from .models import Order, OrderOption, OrderOptionRegistry, User, OrderFactory, OrderRegistry
+from .models import Order, OrderOption, OrderOptionRegistry, User
 
 
 class OrderEntity(Order, Entity):
@@ -82,3 +80,16 @@ class OrderEntity(Order, Entity):
 
     def __repr__(self) -> str:
         return f"Order[{self.uuid}]: {self.name}]"
+
+    def __contains__(self, other) -> bool:
+        if isinstance(other, User):
+            for registrations in self.registrations.values():
+                if other in registrations:
+                    return True
+        if isinstance(other, OrderOption):
+            return other in self._options
+        if isinstance(other, Collection):
+            for child in other:
+                if child in self:
+                    return True
+        return False

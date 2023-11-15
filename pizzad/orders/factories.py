@@ -1,6 +1,7 @@
 from typing import Optional
 from pizzad.food import Ingredient
-from .options import OrderOptionEntitiy, OrderOptionDictRegistry
+from .options import OrderOptionEntitiy
+from .registries import OrderOptionDictRegistry
 from .order import OrderEntity
 from .models import (
         Order, OrderFactory,

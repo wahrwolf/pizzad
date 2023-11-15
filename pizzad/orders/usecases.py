@@ -8,8 +8,8 @@ from uuid import UUID
 from typing import Optional
 from functools import reduce
 from pizzad.food import Ingredient
+from pizzad.user.abc import User, UserFactory, UserRegistry
 from .models import (
-        User, UserFactory, UserRegistry,
         Order, OrderRegistry, OrderFactory,
         OrderOption, OrderOptionRegistry, OrderOptionFactory)
 
@@ -111,7 +111,7 @@ def close_order_for_participant_registration(order: Order) -> Order:
 
 def get_all_available_options(registry: OrderRegistry):
     open_orders = [
-            order for order in registry.get_all_members() 
+            order for order in registry.get_all_members()
             if not order.is_closed_for_registration()
     ]
 
@@ -125,15 +125,13 @@ def get_all_available_options(registry: OrderRegistry):
 
 def get_all_compatible_options_for_user(user: User, registry: OrderRegistry):
     available_options = get_all_available_options(registry)
-    non_allergic_options = {
-            option for option in available_options
-            if user.get_allergenes() not in option
-    }
+    non_allergic_options = filter(
+            lambda option: (user.get_allergies() not in option),
+            available_options)
 
-    options_with_compatible_ingredients = {
-            option for option in non_allergic_options
-            if user.get_blacklisted_ingredients not in option
-    }
+    options_with_compatible_ingredients = filter(
+            lambda option: (user.get_excluded_ingredients not in option),
+            non_allergic_options)
 
     return options_with_compatible_ingredients
 

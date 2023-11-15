@@ -2,29 +2,7 @@ from abc import ABC, abstractmethod
 from typing import Optional
 from pizzad.food import Ingredient, Allergen
 from pizzad.models.pattern import Registry
-
-
-class User(ABC):
-    @abstractmethod
-    def get_allergies(self) -> set[Allergen]:
-        raise NotImplementedError
-
-    @abstractmethod
-    def get_blacklisted_ingredients(self) -> set[Ingredient]:
-        raise NotImplementedError
-
-
-class UserRegistry(Registry):
-    @abstractmethod
-    def get_users_by_query(self, **kwargs) -> set[User]:
-        raise NotImplementedError
-
-
-class UserFactory(ABC):
-    @staticmethod
-    @abstractmethod
-    def create_user(name: str) -> User:
-        raise NotImplementedError
+from pizzad.user.abc import User
 
 
 class OrderOption(ABC):
