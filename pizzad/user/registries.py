@@ -33,4 +33,4 @@ class UserDictRegistry(UserRegistry, DictRegistry):
                     lambda user:
                     (user.get_type() in with_types), users)
 
-        return users
+        return set(users)
