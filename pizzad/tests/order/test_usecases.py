@@ -1,9 +1,15 @@
 
 import unittest
 from uuid import uuid4
-from pizzad.user.manager import UserManager
-from pizzad.orders.models import User, Order,  OrderOption
 from pizzad.food import Ingredient
+
+from pizzad.user.abc import User
+from pizzad.user.factories import UserEntityFactory
+from pizzad.user.registries import UserDictRegistry
+
+from pizzad.orders.models import Order,  OrderOption
+from pizzad.orders.factories import OrderEntityFactory, OrderOptionEntitiyFactory
+from pizzad.orders.registries import OrderDictRegistry, OrderOptionDictRegistry
 from pizzad.orders.usecases import (
     create_new_order, delete_order_by_id, get_orders_by_query,
     create_new_user, get_users_by_query, delete_user_by_id,
@@ -17,38 +23,47 @@ from pizzad.orders.usecases import (
 
 class TestOrderUseCases(unittest.TestCase):
     def setUp(self):
-        self.user_registry = None
-        self.user_factory = None
+        self.user_factory = UserEntityFactory
+        self.user_registry = UserDictRegistry()
 
-        self.order_factory = None
-        self.order_registry = None
+        self.order_factory = OrderEntityFactory
+        self.order_registry = OrderDictRegistry()
 
-        self.option_factory = None
-        self.otion_registry = None
+        self.option_factory = OrderOptionEntitiyFactory
+        self.otion_registry = OrderOptionDictRegistry()
 
     def tearDown(self):
         pass  # Add cleanup code as needed
 
     def test_create_new_order(self):
         order_name = "Test Order"
-        order = create_new_order(order_name, self.order_factory, self.order_registry)
+        order = create_new_order(order_name,
+                                 factory=self.order_factory,
+                                 registry=self.order_registry)
         self.assertIsInstance(order, Order)
         self.assertEqual(order.name, order_name)
 
     def test_delete_order_by_id(self):
         order_name = "Test Order"
-        order = create_new_order(order_name, self.order_factory, self.order_registry)
+        order = create_new_order(
+                order_name,
+                factory=self.order_factory,
+                registry=self.order_registry)
         order_id = order.uuid
-        delete_order_by_id(order_id, self.order_registry)
+        delete_order_by_id(order_id, registry=self.order_registry)
         deleted_order = get_orders_by_query(
-                registry=self.order_registry, uuids=set(order_id))
+                registry=self.order_registry, uuids=set([order_id]))
         self.assertIsNone(deleted_order)
 
     def test_get_orders_by_query(self):
         order_name_1 = "Test Order 1"
         order_name_2 = "Test Order 2"
-        create_new_order(order_name_1, self.order_registry, self.order_registry)
-        create_new_order(order_name_2, self.order_registry, self.order_registry)
+        create_new_order(order_name_1,
+                         registry=self.order_registry,
+                         factory=self.order_factory)
+        create_new_order(order_name_2,
+                         registry=self.order_registry,
+                         factory=self.order_factory)
 
         # Search by query
         query_result = get_orders_by_query(self.order_registry, name="Test Order")
@@ -64,8 +79,12 @@ class TestOrderUseCases(unittest.TestCase):
     def test_get_users_by_query(self):
         user_name_1 = "Test User 1"
         user_name_2 = "Test User 2"
-        create_new_user(user_name_1, self.user_factory, self.user_registry)
-        create_new_user(user_name_2, self.user_factory, self.user_registry)
+        create_new_user(user_name_1,
+                        factory=self.user_factory,
+                        registry=self.user_registry)
+        create_new_user(user_name_2,
+                        factory=self.user_factory,
+                        registry=self.user_registry)
 
         # Search by query
         query_result = get_users_by_query(self.user_registry, name="Test User")
@@ -74,10 +93,14 @@ class TestOrderUseCases(unittest.TestCase):
 
     def test_create_new_option_for_order(self):
         order_name = "Test Order"
-        order = create_new_order(order_name, self.order_factory, self.order_registry)
+        order = create_new_order(order_name,
+                                 registry=self.order_registry,
+                                 factory=self.order_factory)
         option_name = "Test Option"
         ingredients = {Ingredient.CHEESE}
-        order_with_option = create_new_option_for_order(order, option_name, ingredients, self.option_factory)
+        order_with_option = create_new_option_for_order(
+                order, option_name, ingredients,
+                factory=self.option_factory)
         self.assertIsInstance(order_with_option, Order)
         self.assertEqual(len(order_with_option.get_options()), 1)
 

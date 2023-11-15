@@ -44,13 +44,13 @@ class OrderOptionDictRegistry(OrderOptionRegistry, DictRegistry):
         return options
 
 
-class OrderDictRegistry(OrderRegistry, DictRegistry):
-    def get_options_by_query(self,
-                             name_pattern: str = "",
-                             uuids: Optional[set[UUID]] = None,
-                             with_participants: Optional[set[User]] = None,
-                             without_participants: Optional[set[User]] = None,
-                             **kwargs) -> set[Order]:
+class OrderDictRegistry(DictRegistry, OrderRegistry):
+    def get_orders_by_query(self,
+                            name_pattern: str = "",
+                            uuids: Optional[set[UUID]] = None,
+                            with_participants: Optional[set[User]] = None,
+                            without_participants: Optional[set[User]] = None,
+                            **kwargs) -> set[Order]:
         orders = self._registry.values()
         if uuids:
             orders = filter(

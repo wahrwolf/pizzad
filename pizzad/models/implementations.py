@@ -6,6 +6,10 @@ from .pattern import Registry
 class DictRegistry(Registry):
     _registry: dict
 
+    def __init__(self):
+        super().__init__()
+        self._registry = {}
+
     def clear_registry(self):
         self._registry = {}
         return self

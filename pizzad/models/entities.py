@@ -55,6 +55,9 @@ class Entity:
                     )
                 )
 
+    def __hash__(self):
+        return hash((self.uuid, self.domain))
+
 
 class EntityFactory(ABC):
     module_name: str
