@@ -47,7 +47,7 @@ class TestOrderUseCases(unittest.TestCase):
                 order_name,
                 factory=self.order_factory,
                 registry=self.order_registry)
-        order_id = order.uuid
+        order_id = order.get_uuid()
         delete_order_by_id(order_id, registry=self.order_registry)
         deleted_order = get_orders_by_query(
                 registry=self.order_registry, uuids=set([order_id]))

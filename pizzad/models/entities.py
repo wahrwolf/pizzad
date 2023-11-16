@@ -1,67 +1,47 @@
 from abc import ABC, abstractmethod
 from inspect import getmodule, isclass
-from uuid import UUID, uuid4
+from uuid import UUID
+from .pattern import Entity, Factory
 from typing import Optional
 
 
-class DictObject(ABC):
-
-    @abstractmethod
-    def to_dict(self):
-        raise NotImplementedError
-
-    @abstractmethod
-    def update_from_dict(self, data: dict):
-        raise NotImplementedError
-
-
-class Entity:
-    uuid: UUID
-    domain: str
+class DomainEntity(Entity):
+    _domain: str
 
     def __init__(self,
                  uuid: Optional[UUID] = None,
                  domain: Optional[str] = None):
-        self.uuid = uuid if uuid else uuid4()
+        super().__init__(uuid)
         if not domain:
             module_name = getmodule(self).__name__
             class_name = self.__class__.__name__
             domain = f"{module_name}.{class_name}"
-        self.domain = domain
-
-    def set_uuid(self, uuid: UUID):
-        self.uuid = uuid
-
-    def get_uuid(self) -> UUID:
-        return self.uuid
-
-    def set_domain(self, domain: str):
-        self.domain = domain
+        self._domain = domain
 
     def get_domain(self) -> str:
-        return self.domain
+        return self._domain
 
     def __str__(self):
-        return f"{self.domain}[{self.uuid}]"
+        return f"{self._domain}[{self._uuid}]"
 
     def __repr__(self):
-        return f"{self.domain}[{self.uuid}]"
+        return f"{self._domain}[{self._uuid}]"
 
     def __eq__(self, other):
         return (
                 isinstance(other, Entity) and (
-                    self.domain == other.domain and
-                    self.uuid == other.uuid
+                    self._domain == other._domain and
+                    self._uuid == other._uuid
                     )
                 )
 
     def __hash__(self):
-        return hash((self.uuid, self.domain))
+        return hash((self._uuid, self._domain))
 
 
-class EntityFactory(ABC):
-    module_name: str
-    class_name: str
+class EntityFactory(Factory):
+    _module_name: str
+    _class_name: str
 
     def __init__(self, target_class=None):
         if target_class:
@@ -81,6 +61,10 @@ class EntityFactory(ABC):
             return getattr(module, self.class_name)()
         except Exception as error:
             raise error
+
+    def create_new(self, target_class, **kwargs):
+        self.imprint_class(target_class)
+        return self.create_entity()
 
     def __str__(self):
         return f"Factory[{self.class_name}@{self.module_name}]"

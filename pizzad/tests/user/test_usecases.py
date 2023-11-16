@@ -1,6 +1,5 @@
 
 import unittest
-from uuid import uuid4
 
 from pizzad.user.abc import User
 from pizzad.user.factories import UserEntityFactory
@@ -43,7 +42,7 @@ class TestUserUseCases(unittest.TestCase):
     def test_delete_user_by_id(self):
         user_name = "Test User"
         user = create_new_user(user_name, self.user_factory, self.user_registry)
-        user_id = user.uuid
+        user_id = user.get_uuid()
         delete_user_by_id(user_id, registry=self.user_registry)
         deleted_user = get_users_by_query(
                 registry=self.user_registry, uuids=set([user_id]))

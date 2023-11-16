@@ -1,7 +1,16 @@
 from abc import ABC, abstractmethod
-from uuid import UUID
+from typing import Optional
+from uuid import UUID, uuid4
 
-from .entities import Entity
+
+class Entity(ABC):
+    _uuid: UUID
+
+    def __init__(self, uuid: Optional[UUID] = None):
+        self._uuid = uuid if uuid else uuid4()
+
+    def get_uuid(self):
+        return self._uuid
 
 
 class Singleton(Entity):
@@ -16,7 +25,7 @@ class Singleton(Entity):
         return cls._instance
 
 
-class Registry(ABC):
+class EntityRegistry(ABC):
     def register_member(self, entity: Entity):
         raise NotImplementedError
 
@@ -27,6 +36,16 @@ class Registry(ABC):
         raise NotImplementedError
 
     def delete_member_by_id(self, uuid: UUID) -> None:
+        raise NotImplementedError
+
+
+class Product(ABC):
+    pass
+
+
+class Factory(ABC):
+    @abstractmethod
+    def create_new(self, **kwargs) -> Product:
         raise NotImplementedError
 
 
@@ -47,9 +66,7 @@ class Context(ABC):
 
 
 class Memento(ABC):
-    @abstractmethod
-    def restore(self) -> 'MementoOriginator':
-        raise NotImplementedError
+    pass
 
 
 class MementoOriginator(ABC):
@@ -57,12 +74,22 @@ class MementoOriginator(ABC):
     def save(self) -> Memento:
         raise NotImplementedError
 
+    @abstractmethod
+    def restore(self, memento: Memento):
+        raise NotImplementedError
+
 
 class MementoCaretaker(ABC):
     history: list[Memento]
 
-    def undo(self) -> MementoOriginator:
-        return self.history.pop().restore()
+    def undo(self, originator: MementoOriginator) -> MementoOriginator:
+        memento = self.history.pop()
+        originator.restore(memento)
+        return originator
+
+    def save(self, originator: MementoOriginator):
+        memento = originator.save()
+        self.history.append(memento)
 
 
 class Service(ABC):

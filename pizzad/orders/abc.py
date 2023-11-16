@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import Optional
 from pizzad.food import Ingredient, Allergen
-from pizzad.models.pattern import Registry
+from pizzad.models.pattern import EntityRegistry
 from pizzad.user.abc import User
 
 
@@ -41,7 +41,7 @@ class OrderOptionFactory(ABC):
         raise NotImplementedError
 
 
-class OrderOptionRegistry(Registry):
+class OrderOptionRegistry(EntityRegistry):
     @abstractmethod
     def get_options_by_query(self, **kwargs) -> set[OrderOption]:
         raise NotImplementedError
@@ -77,7 +77,7 @@ class Order(ABC):
         raise NotImplementedError
 
 
-class OrderRegistry(Registry):
+class OrderRegistry(EntityRegistry):
     def get_orders_by_query(self, **kwargs) -> set[Order]:
         raise NotImplementedError
 

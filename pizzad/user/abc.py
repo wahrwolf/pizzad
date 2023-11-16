@@ -1,6 +1,5 @@
 from abc import ABC, abstractmethod
 from pizzad.food import Ingredient, Allergen
-from pizzad.models.pattern import Registry
 
 
 class User(ABC):
@@ -17,7 +16,7 @@ class User(ABC):
         raise NotImplementedError
 
 
-class UserRegistry(Registry):
+class UserRegistry(ABC):
     @abstractmethod
     def get_users_by_query(self, **kwargs) -> set[User]:
         raise NotImplementedError

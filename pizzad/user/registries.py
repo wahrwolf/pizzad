@@ -1,18 +1,18 @@
 from typing import Optional
 from uuid import UUID
-from pizzad.models.implementations import DictRegistry
+from pizzad.models.implementations import Registry
 from .abc import User, UserRegistry
 from .user import UserType
 
 
-class UserDictRegistry(UserRegistry, DictRegistry):
+class UserDictRegistry(UserRegistry, Registry):
     def get_users_by_query(self,
                            name_pattern: str = "",
                            uuids: Optional[set[UUID]] = None,
                            with_types: Optional[set[UserType]] = None,
                            without_types: Optional[set[UserType]] = None,
                            **kwargs) -> set[User]:
-        users = self._registry.values()
+        users = self.get_all_members()
 
         if uuids:
             users = filter(

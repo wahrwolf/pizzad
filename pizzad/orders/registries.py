@@ -1,11 +1,11 @@
 from typing import Optional
 from uuid import UUID
-from pizzad.models.implementations import DictRegistry
+from pizzad.models.implementations import Registry
 from pizzad.food import Allergen, Ingredient
 from .abc import OrderOption, OrderOptionRegistry, Order, OrderRegistry, User
 
 
-class OrderOptionDictRegistry(OrderOptionRegistry, DictRegistry):
+class OrderOptionDictRegistry(OrderOptionRegistry, Registry):
     def get_options_by_query(self,
                              name_pattern: str = "",
                              uuids: Optional[set[UUID]] = None,
@@ -44,7 +44,7 @@ class OrderOptionDictRegistry(OrderOptionRegistry, DictRegistry):
         return set(options)
 
 
-class OrderDictRegistry(DictRegistry, OrderRegistry):
+class OrderDictRegistry(Registry, OrderRegistry):
     def get_orders_by_query(self,
                             name_pattern: str = "",
                             uuids: Optional[set[UUID]] = None,

@@ -24,13 +24,18 @@ def create_new_order(order_name: str,
     return order
 
 
-def delete_order_by_id(uuid: UUID, registry: OrderRegistry):
-    registry.delete_member_by_id(uuid)
+def get_order_by_id(uuid: UUID, registry: OrderRegistry) -> Order:
+    order = registry.get_member_by_id(uuid)
+    return order
 
 
 def get_orders_by_query(registry: OrderRegistry, **kwargs) -> set[Order]:
     orders = registry.get_orders_by_query(**kwargs)
     return orders
+
+
+def delete_order_by_id(uuid: UUID, registry: OrderRegistry):
+    registry.delete_member_by_id(uuid)
 
 
 def create_new_option_for_order(
