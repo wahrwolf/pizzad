@@ -102,3 +102,16 @@ class Visitor(ABC):
     @abstractmethod
     def visit(self, service: Service):
         raise NotImplementedError
+
+
+class Builder(ABC):
+    @abstractmethod
+    def reset(self):
+        raise NotImplementedError
+
+
+class BuildDirector(ABC):
+    _builder: Builder
+
+    def set_builder(self, builder: Builder):
+        self._builder = builder

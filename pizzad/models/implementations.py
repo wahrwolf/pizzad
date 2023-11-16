@@ -1,7 +1,5 @@
-from abc import ABC, abstractmethod
 from uuid import UUID
-from functools import reduce
-from .pattern import Entity, EntityRegistry, MementoOriginator, Memento
+from .pattern import Entity, EntityRegistry
 
 
 class Registry(EntityRegistry):
@@ -30,26 +28,3 @@ class Registry(EntityRegistry):
                     other.uuid in self._registry and
                     self._registry[other.uuid].get_domain() == other.get_domain())
         return False
-
-
-class RestoreableRegistry(Registry, MementoOriginator):
-
-    class RegistryMemento(Entity, Memento):
-        def __init__(self, entities: set[Entity]):
-            super().__init__()
-            self._entities = entities
-
-        def _get_entities(self):
-            return self._entities
-
-    def clear_registry(self):
-        self._registry = {}
-        return self
-
-    def save(self) -> RegistryMemento:
-        return RestoreableRegistry.RegistryMemento(self.get_all_members())
-
-    def restore(self, memento: RegistryMemento):
-        self.clear_registry()
-        for entity in memento._get_entities():
-            self.register_member(entity)

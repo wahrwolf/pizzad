@@ -1,15 +1,17 @@
 from abc import ABC, abstractmethod
+from typing import Optional
+from uuid import UUID
 from pizzad.user.abc import User
 from pizzad.orders.abc import Order, OrderOption
-from pizzad.models.pattern import Entity,  MementoOriginator, Memento, MementoCaretaker
+from pizzad.models.pattern import Entity,  MementoOriginator, Memento, MementoCaretaker, Builder
 from pizzad.models.implementations import Registry
 
 
 class RestoreableRegistry(Registry, MementoOriginator):
 
     class RegistryMemento(Entity, Memento):
-        def __init__(self, entities: set[Entity]):
-            super().__init__()
+        def __init__(self, entities: set[Entity], uuid: Optional[UUID] = None):
+            super().__init__(uuid)
             self._entities = entities
 
         def _get_entities(self):
@@ -29,94 +31,100 @@ class RestoreableRegistry(Registry, MementoOriginator):
         return self
 
 
-class SerializationStrategy:
-    @abstractmethod
-    @staticmethod
-    def serialize_to_dict(obj: object):
-        raise NotImplementedError
-
-
-class UserSerializationStrategy(SerializationStrategy):
-    @staticmethod
-    @abstractmethod
-    def serialize_to_dict(
-            user: User
-            ) -> dict:
-        raise NotImplementedError
-
-
-class OrderSerializationStrategy(SerializationStrategy):
-    @staticmethod
-    @abstractmethod
-    def serialize_to_dict(
-            order: Order
-            ) -> dict:
-        raise NotImplementedError
-
-
-class OrderOptionSerializationStrategy(SerializationStrategy):
-    @staticmethod
-    @abstractmethod
-    def serialize_to_dict(
-            option: OrderOption
-            ) -> dict:
-        raise NotImplementedError
-
-
-class RegistryMementoSerializationStrategy(SerializationStrategy):
-    @staticmethod
-    @abstractmethod
-    def serialize_to_dict(
-            memento: RestoreableRegistry.RegistryMemento
-            ) -> dict:
-        raise NotImplementedError
-
-
-class DeserializationStrategy:
-    @abstractmethod
-    @staticmethod
-    def deserialize_from_dict(serialized_data: dict) -> object:
-        raise NotImplementedError
-    pass
-
-
-class UserDeserializationStrategy(DeserializationStrategy):
-    @staticmethod
-    @abstractmethod
-    def deserialize_from_dict(
-            serialized_data: dict
-            ) -> User:
-        raise NotImplementedError
-
-
-class OrderDeserializationStrategy(DeserializationStrategy):
-    @staticmethod
-    @abstractmethod
-    def deserialize_from_dict(
-            serialized_data: dict
-            ) -> Order:
-        raise NotImplementedError
-
-
-class OrderOptionDeserializationStrategy(DeserializationStrategy):
-    @staticmethod
-    @abstractmethod
-    def deserialize_from_dict(
-            serialized_data: dict
-            ) -> OrderOption:
-        raise NotImplementedError
-
-
-class RegistryMementoDeserializationStrategy(DeserializationStrategy):
-    @staticmethod
-    @abstractmethod
-    def deserialize_from_dict(
-            serialized_data: dict
-            ) -> RestoreableRegistry.RegistryMemento:
-        raise NotImplementedError
-
-
 class Archive(MementoCaretaker):
-    def restore_registry_from_url(url: str, registry: RestoreableRegistry):
+    def connect(self, url: str):
         raise NotImplementedError
-    pass
+
+    def put(self, serialized_data: dict) -> UUID:
+        raise NotImplementedError
+
+    def get(self, uuid: UUID) -> dict:
+        raise NotImplementedError
+
+    def options(self, url: str) -> set[str]:
+        raise NotImplementedError
+
+    def head(self, url: str) -> UUID:
+        raise NotImplementedError
+
+
+class RegistryBuilder(Builder):
+    memento: RestoreableRegistry.RegistryMemento
+    serialized_data: dict
+    entity_data_dicts: list[dict]
+    entities: set[Entity]
+
+    def __init__(self, serialized_data: dict):
+        self.serialized_data = serialized_data
+
+    def reset(self):
+        self.entities = set()
+        self.entity_data_dicts = []
+        self.memento = None
+
+    @abstractmethod
+    def dereference_foreign_references(self, registry: Registry):
+        raise NotImplementedError
+
+    @abstractmethod
+    def build_entity(self, serialized_data: dict) -> Entity:
+        raise NotImplementedError
+
+    def build_entities(self):
+        self.entities = map(self.build_entities, self.entity_data_dicts)
+
+    @abstractmethod
+    def build_registry_memento(self):
+        raise NotImplementedError
+
+    def build_registry(self):
+        return RestoreableRegistry().restore(self.memento)
+
+
+class UserRegistryBuilder(RegistryBuilder):
+    @abstractmethod
+    def build_user_registry(self, serialized_data) -> RestoreableRegistry:
+        raise NotImplementedError
+
+
+class OrderRegistryBuilder(RegistryBuilder):
+    @abstractmethod
+    def build_order_registry(self, serialized_data) -> RestoreableRegistry:
+        raise NotImplementedError
+
+
+class SerializedDataBuilder(Builder):
+    memento: RestoreableRegistry.RegistryMemento
+    serialized_data: dict
+    entity_data_dicts: list[dict]
+    registry: RestoreableRegistry
+
+    def __init__(self, registry):
+        self.registry = registry
+
+    def set_registry(self, registry: RestoreableRegistry):
+        self.reset()
+        self.registry = registry
+
+    def reset(self):
+        self.serialized_data = {}
+        self.entity_data_dicts = []
+        self.memento = None
+
+    def build_registry_memento(self):
+        self.memento = self.registry.save()
+
+    @abstractmethod
+    def build_data_dict(self, entity: Entity):
+        raise NotImplementedError
+
+    def build_entity_data_dicts(self):
+        self.entity_data_dicts = map(self.build_data_dict, self.memento._get_entities())
+
+    @abstractmethod
+    def replace_foreign_entities_with_rerefences(self):
+        raise NotImplementedError
+
+    @abstractmethod
+    def build_serialized_data(self):
+        raise NotImplementedError
