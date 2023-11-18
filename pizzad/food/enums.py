@@ -20,6 +20,9 @@ class Allergen(StrEnum):
     TREIF = auto()
     HARAM = auto()
 
+    def __str__(self) -> str:
+        return self.name
+
 
 class Ingredient(Enum):
     CHEESE = (Allergen.MILK,)
@@ -43,3 +46,13 @@ class Ingredient(Enum):
 
     def get_allergenes(self) -> set[Allergen]:
         return self._allergenes
+
+    def __str__(self) -> str:
+        return self.name
+
+
+class FoodType(StrEnum):
+    PIZZA = auto()
+    BAGUETTE = auto()
+    SOUP = auto()
+    SUSHI = auto()

@@ -65,8 +65,17 @@ class Context(ABC):
         return self._strategy.execute(**kwargs)
 
 
-class Memento(ABC):
-    pass
+class Memento(Entity):
+    def __init__(
+            self, uuid: Optional[UUID] = None, version: Optional[int] = None):
+        self._version = version if version else self.get_uuid().int
+        super().__init__(uuid)
+
+    def get_version(self) -> int:
+        return self._version
+
+    def __hash__(self):
+        return hash(self.get_uuid())
 
 
 class MementoOriginator(ABC):

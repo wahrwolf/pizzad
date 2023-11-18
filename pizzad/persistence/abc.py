@@ -3,15 +3,18 @@ from typing import Optional
 from uuid import UUID
 from pizzad.user.abc import User
 from pizzad.orders.abc import Order, OrderOption
-from pizzad.models.pattern import Entity,  MementoOriginator, Memento, MementoCaretaker, Builder
-from pizzad.models.implementations import Registry
+from pizzad.models.pattern import (
+        Entity,  MementoOriginator,  MementoCaretaker, Builder)
+from pizzad.models.implementations import Registry, Snapshot
 
 
 class RestoreableRegistry(Registry, MementoOriginator):
 
-    class RegistryMemento(Entity, Memento):
-        def __init__(self, entities: set[Entity], uuid: Optional[UUID] = None):
-            super().__init__(uuid)
+    class RegistrySnapshot(Snapshot):
+        def __init__(self, entities: set[Entity],
+                     uuid: Optional[UUID] = None,
+                     version: Optional[int] = None):
+            super().__init__(uuid=uuid, version=version)
             self._entities = entities
 
         def _get_entities(self):
@@ -21,35 +24,18 @@ class RestoreableRegistry(Registry, MementoOriginator):
         self._registry = {}
         return self
 
-    def save(self) -> RegistryMemento:
-        return RestoreableRegistry.RegistryMemento(self.get_all_members())
+    def save(self) -> RegistrySnapshot:
+        return RestoreableRegistry.RegistrySnapshot(self.get_all_members())
 
-    def restore(self, memento: RegistryMemento):
+    def restore(self, memento: RegistrySnapshot):
         self.clear_registry()
         for entity in memento._get_entities():
             self.register_member(entity)
         return self
 
 
-class Archive(MementoCaretaker):
-    def connect(self, url: str):
-        raise NotImplementedError
-
-    def put(self, serialized_data: dict) -> UUID:
-        raise NotImplementedError
-
-    def get(self, uuid: UUID) -> dict:
-        raise NotImplementedError
-
-    def options(self, url: str) -> set[str]:
-        raise NotImplementedError
-
-    def head(self, url: str) -> UUID:
-        raise NotImplementedError
-
-
 class RegistryBuilder(Builder):
-    memento: RestoreableRegistry.RegistryMemento
+    memento: RestoreableRegistry.RegistrySnapshot
     serialized_data: dict
     entity_data_dicts: list[dict]
     entities: set[Entity]
@@ -93,8 +79,38 @@ class OrderRegistryBuilder(RegistryBuilder):
         raise NotImplementedError
 
 
+class SerializedDictSnapshot(Snapshot):
+    pass
+
+
+class SerializableSnapshot(Snapshot, MementoOriginator):
+    def save(self) -> SerializedDictSnapshot:
+        raise NotImplementedError
+
+    def restore(self, memento: SerializedDictSnapshot):
+        raise NotImplementedError
+
+
+class Archive(MementoCaretaker):
+    pass
+
+
+class ArchiveServer(ABC):
+    def put(self, serialized_data: dict) -> UUID:
+        raise NotImplementedError
+
+    def get(self, uuid: UUID) -> dict:
+        raise NotImplementedError
+
+    def options(self, url: str) -> set[str]:
+        raise NotImplementedError
+
+    def head(self, url: str) -> UUID:
+        raise NotImplementedError
+
+
 class SerializedDataBuilder(Builder):
-    memento: RestoreableRegistry.RegistryMemento
+    memento: RestoreableRegistry.RegistrySnapshot
     serialized_data: dict
     entity_data_dicts: list[dict]
     registry: RestoreableRegistry
@@ -115,16 +131,21 @@ class SerializedDataBuilder(Builder):
         self.memento = self.registry.save()
 
     @abstractmethod
-    def build_data_dict(self, entity: Entity):
+    def build_data_dict(self, entity: Entity) -> dict:
         raise NotImplementedError
 
     def build_entity_data_dicts(self):
-        self.entity_data_dicts = map(self.build_data_dict, self.memento._get_entities())
+        self.entity_data_dicts = map(
+                self.build_data_dict, self.memento._get_entities())
 
     @abstractmethod
-    def replace_foreign_entities_with_rerefences(self):
+    def replace_foreign_entities_with_rerefences(self, data: dict) -> dict:
         raise NotImplementedError
 
     @abstractmethod
     def build_serialized_data(self):
         raise NotImplementedError
+
+
+class UserRegistrySerializer(SerializedDataBuilder):
+    pass

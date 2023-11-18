@@ -1,5 +1,6 @@
 from enum import Enum
 from typing import Optional
+from uuid import UUID
 
 from pizzad.models import Entity
 from pizzad.food import Ingredient, Allergen
@@ -21,8 +22,12 @@ class UserEntity(User, Entity):
     excluded_ingredients: set[Ingredient]
     preferred_ingredients: set[Ingredient]
 
-    def __init__(self, name: str, type: Optional[UserType] = None):
-        super().__init__()
+    def __init__(
+            self, name: str,
+            type: Optional[UserType] = None,
+            uuid: Optional[UUID] = None,
+            ):
+        super().__init__(uuid=uuid)
         self.name = name
         self.type = type if type else UserType.UNKNOWN
 
@@ -34,8 +39,8 @@ class UserEntity(User, Entity):
         self.type = type
         return self
 
-    def get_preferred_ingredients(self) -> set[Ingredient]:
-        return self.preferred_ingredients
+    def get_type(self):
+        return self.type
 
     def add_prefereed_ingredient(self, ingredient: Ingredient):
         self.preferred_ingredients.add(ingredient)
