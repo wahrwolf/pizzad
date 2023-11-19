@@ -57,5 +57,9 @@ class UserEntity(User, Entity):
     def remove_excluded_ingredient(self, ingredient: Ingredient):
         self.excluded_ingredients.remove(ingredient)
 
+    def add_allergy(self, allergy: Allergen):
+        self.allergies.add(allergy)
+        return self
+
     def get_allergies(self) -> set[Allergen]:
         return self.allergies

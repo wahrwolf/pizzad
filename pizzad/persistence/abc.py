@@ -43,14 +43,21 @@ class RegistryBuilder(Builder):
     def __init__(self, serialized_data: dict):
         self.serialized_data = serialized_data
 
-    def reset(self):
-        self.entities = set()
-        self.entity_data_dicts = []
-        self.memento = None
+    @abstractmethod
+    def setup(self, **kwargs):
+        raise NotImplementedError
 
     @abstractmethod
-    def dereference_foreign_references(self, registry: Registry):
+    def reset(self):
         raise NotImplementedError
+
+    @abstractmethod
+    def dereference_foreign_references(self, data: dict) -> dict:
+        raise NotImplementedError
+
+    def dereference_data_dicts(self):
+        self.entity_data_dicts = map(
+                self.dereference_foreign_references, self.entity_data_dicts)
 
     @abstractmethod
     def build_entity(self, serialized_data: dict) -> Entity:
@@ -59,12 +66,21 @@ class RegistryBuilder(Builder):
     def build_entities(self):
         self.entities = map(self.build_entities, self.entity_data_dicts)
 
-    @abstractmethod
     def build_registry_memento(self):
-        raise NotImplementedError
+        self.memento = RestoreableRegistry.RegistrySnapshot(
+                entities=set(self.entity_data_dicts),
+                uuid="",
+                version=""
+        )
 
     def build_registry(self):
-        return RestoreableRegistry().restore(self.memento)
+        self.reset()
+        self.dereference_data_dicts()
+        self.build_entities()
+        self.build_registry_memento()
+
+        registry = RestoreableRegistry().restore(self.memento)
+        return registry
 
 
 class UserRegistryBuilder(RegistryBuilder):
