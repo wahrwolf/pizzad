@@ -68,8 +68,8 @@ class Context(ABC):
 class Memento(Entity):
     def __init__(
             self, uuid: Optional[UUID] = None, version: Optional[int] = None):
-        self._version = version if version else self.get_uuid().int
         super().__init__(uuid)
+        self._version = version if version else self.get_uuid().int
 
     def get_version(self) -> int:
         return self._version

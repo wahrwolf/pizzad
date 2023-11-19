@@ -30,10 +30,16 @@ class UserEntity(User, Entity):
         super().__init__(uuid=uuid)
         self.name = name
         self.type = type if type else UserType.UNKNOWN
+        self.allergies = set()
+        self.excluded_ingredients = set()
+        self.preferred_ingredients = set()
 
     def set_name(self, name: str):
         self.name = name
         return self
+
+    def get_name(self) -> str:
+        return self.name
 
     def set_type(self, type: UserType):
         self.type = type
@@ -41,6 +47,9 @@ class UserEntity(User, Entity):
 
     def get_type(self):
         return self.type
+
+    def get_preferred_ingredients(self) -> set[Ingredient]:
+        return self.preferred_ingredients
 
     def add_prefereed_ingredient(self, ingredient: Ingredient):
         self.preferred_ingredients.add(ingredient)

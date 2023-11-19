@@ -4,30 +4,26 @@ from pizzad.models.implementations import Registry, Snapshot
 from pizzad.user import User, UserType
 from pizzad.user.factories import UserEntityFactory
 from pizzad.food import Ingredient, Allergen
-from .abc import RestoreableRegistry, UserRegistryBuilder, SerializedDataBuilder
+from .abc import RestoreableRegistry, UserRegistryBuilder, UserRegistrySerializer
 
 
 class ConcreteUserRegistryBuilder(UserRegistryBuilder):
-    def setup(self, **kwargs):
-        pass
-
     def reset(self):
         self.memento = None
         self.serialized_data = {}
         self.entity_data_dicts = []
-        self.entities = set[Entity]
+        self.entities = set()
 
     def dereference_foreign_references(self, data: dict) -> dict:
-        data = {}
         data["uuid"] = UUID(data["uuid"])
-        data["allergies"] = map(
-                lambda allergen: (Allergen[allergen]), data["allergies"])
-        data["excluded_ingredients"] = map(
+        data["allergies"] = list(map(
+                lambda allergen: (Allergen[allergen]), data["allergies"]))
+        data["excluded_ingredients"] = list(map(
                 lambda ingredient: (Ingredient[ingredient]),
-                data["excluded_ingredients"])
-        data["preferred_ingredients"] = map(
+                data["excluded_ingredients"]))
+        data["preferred_ingredients"] = list(map(
                 lambda ingredient: (Ingredient[ingredient]),
-                data["preferred_ingredients"])
+                data["preferred_ingredients"]))
         data["user_type"] = UserType[data["user_type"]]
         return data
 
@@ -42,13 +38,12 @@ class ConcreteUserRegistryBuilder(UserRegistryBuilder):
         map(user.add_excluded_ingredient, serialized_data["excluded_ingredients"])
         return user
 
-    def build_user_registry(self) -> RestoreableRegistry:
-        self.reset()
+    def build_user_registry(self, serialized_data) -> RestoreableRegistry:
+        pass
 
 
-
-class ConcreteUserRegistrySerializer(SerializedDataBuilder):
-    def build_data_dict(self, user: User) -> dict:
+class ConcreteUserRegistrySerializer(UserRegistrySerializer):
+    def build_data_dict_from_user(self, user: User) -> dict:
         data = {
                 "user_name": user.get_name(),
                 "allergies": list(user.get_allergies()),
@@ -63,9 +58,9 @@ class ConcreteUserRegistrySerializer(SerializedDataBuilder):
     def replace_foreign_entities_with_rerefences(
             self, data: dict) -> dict:
         data["uuid"] = str(data["uuid"])
-        data["allergies"] = map(str, data["allergies"])
-        data["excluded_ingredients"] = map(str, data["excluded_ingredients"])
-        data["preferred_ingredients"] = map(str, data["preferred_ingredients"])
-        data["user_type"] = data["user_type"].value
+        data["allergies"] = list(map(str, data["allergies"]))
+        data["excluded_ingredients"] = list(map(str, data["excluded_ingredients"]))
+        data["preferred_ingredients"] = list(map(str, data["preferred_ingredients"]))
+        data["user_type"] = data["user_type"].name
 
         return data
