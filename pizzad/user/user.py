@@ -72,3 +72,9 @@ class UserEntity(User, Entity):
 
     def get_allergies(self) -> set[Allergen]:
         return self.allergies
+
+    def __str__(self) -> str:
+        return f"User[{self.get_uuid()}]: {self.name}"
+
+    def __repr__(self) -> str:
+        return f"User(name={self.name}, uuid=UUID('{self.get_uuid()}'))"

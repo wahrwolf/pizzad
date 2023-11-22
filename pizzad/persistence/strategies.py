@@ -101,4 +101,3 @@ class PersistDictAsJSONStrategy(DictPersistenceStrategy):
                 uuid_string = files[0].stem
                 return UUID(uuid_string)
         return uuid4()
-

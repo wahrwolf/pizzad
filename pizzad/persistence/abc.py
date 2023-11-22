@@ -54,7 +54,7 @@ class RegistryBuilder(Builder):
         self.serialized_data = data
 
     @abstractmethod
-    def dereference_foreign_references(self, data: dict) -> dict:
+    def dereference_foreign_references(self, serialized_data: dict) -> dict:
         raise NotImplementedError
 
     def dereference_data_dicts(self):
@@ -62,7 +62,7 @@ class RegistryBuilder(Builder):
                 self.dereference_foreign_references, self.serialized_data))
 
     @abstractmethod
-    def build_entity(self, serialized_data: dict) -> Entity:
+    def build_entity(self, data: dict) -> Entity:
         raise NotImplementedError
 
     def build_entities(self):
@@ -87,18 +87,41 @@ class RegistryBuilder(Builder):
 
 
 class UserRegistryBuilder(RegistryBuilder):
-    @abstractmethod
     def build_user_registry(self, serialized_data) -> RestoreableRegistry:
-        raise NotImplementedError
+        return self.build_registry(serialized_data)
+
+
+class OrderOptionRegistryBuilder(RegistryBuilder):
+    def build_option_registry(self, serialized_data) -> RestoreableRegistry:
+        return self.build_registry(serialized_data)
 
 
 class OrderRegistryBuilder(RegistryBuilder):
-    @abstractmethod
-    def build_order_registry(self, serialized_data) -> RestoreableRegistry:
-        raise NotImplementedError
+    users: RegistryBuilder
+    options: RegistryBuilder
+
+    def set_user_registry(self, registry: Registry):
+        self.users = registry
+
+    def set_option_registry(self, registry: Registry):
+        self.options = registry
+
+    def build_order_registry(
+            self, serialized_data: dict,
+            user_registry: Registry,
+            option_registry: Registry) -> RestoreableRegistry:
+        self.reset()
+        self.set_user_registry(user_registry)
+        self.set_option_registry(option_registry)
+        self.set_serialized_data(serialized_data)
+        self.dereference_data_dicts()
+        self.build_entities()
+        self. build_registry_memento()
+        registry = RestoreableRegistry().restore(self.memento)
+        return registry
 
 
-class SerializedDictSnapshot(Snapshot):
+class SerializedSnapshot(Snapshot):
     def __init__(
             self, data: dict,
             uuid: Optional[UUID] = None,
@@ -107,21 +130,32 @@ class SerializedDictSnapshot(Snapshot):
         self._data = data
 
     def to_dict(self):
-        return self._data
+        return {
+                "meta": {
+                    "version": self.get_version(),
+                    "uuid": str(self.get_uuid())
+                }, "data": self._data
+        }
+
+    @staticmethod
+    def from_dict(data: dict):
+        return SerializedSnapshot(
+                uuid=UUID(data["meta"]["uuid"]),
+                version=data["meta"]["version"],
+                data=data["data"])
 
 
 class SerializableSnapshot(Snapshot, MementoOriginator):
-
     def to_dict(self) -> dict:
         raise NotImplementedError
 
     def from_dict(self, dict):
         raise NotImplementedError
 
-    def save(self) -> SerializedDictSnapshot:
-        return SerializedDictSnapshot(self.to_dict())
+    def save(self) -> SerializedSnapshot:
+        return SerializedSnapshot(self.to_dict())
 
-    def restore(self, memento: SerializedDictSnapshot):
+    def restore(self, memento: SerializedSnapshot):
         return self.from_dict(memento.to_dict())
 
 
@@ -130,10 +164,10 @@ class Archive(MementoCaretaker):
 
 
 class ArchiveServer(ABC):
-    def put(self, serialized_data: dict) -> UUID:
+    def put(self, snapshot: SerializableSnapshot, url: str) -> UUID:
         raise NotImplementedError
 
-    def get(self, uuid: UUID) -> dict:
+    def get(self, url: str) -> SerializableSnapshot:
         raise NotImplementedError
 
     def options(self, url: str) -> set[str]:
@@ -201,5 +235,24 @@ class UserRegistrySerializer(SerializedDataBuilder):
             return self.build_data_dict_from_user(entity)
         raise NotImplementedError
 
-    def serialize_user_registry(self, registry: RestoreableRegistry):
-        pass
+
+class OrderOptionRegistrySerializer(SerializedDataBuilder):
+    @abstractmethod
+    def build_data_dict_from_option(self, option: OrderOption) -> dict:
+        raise NotImplementedError
+
+    def build_data_dict_from_entity(self, entity: Entity) -> dict:
+        if isinstance(entity, OrderOption):
+            return self.build_data_dict_from_option(entity)
+        raise NotImplementedError
+
+
+class OrderRegistrySerializer(SerializedDataBuilder):
+    @abstractmethod
+    def build_data_dict_from_order(self, order: Order) -> dict:
+        raise NotImplementedError
+
+    def build_data_dict_from_entity(self, entity: Entity) -> dict:
+        if isinstance(entity, Order):
+            return self.build_data_dict_from_order(entity)
+        raise NotImplementedError

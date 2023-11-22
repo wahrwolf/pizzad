@@ -1,4 +1,6 @@
 from typing import Optional
+from uuid import UUID
+from datetime import datetime
 from pizzad.food import Ingredient
 from .option import OrderOptionEntitiy
 from .registries import OrderOptionDictRegistry
@@ -17,6 +19,20 @@ class OrderEntityFactory(OrderFactory):
         order.set_registry(registry)
         return order
 
+    @staticmethod
+    def restore_order(
+            uuid: UUID, name: str,
+            created_at: datetime, 
+            closed_since: Optional[datetime], 
+            open_since: Optional[datetime]):
+        order = OrderEntity(name=name, uuid=uuid,
+                            created_at=created_at,
+                            open_since=open_since,
+                            closed_since=closed_since)
+        registry = OrderOptionDictRegistry()
+        order.set_registry(registry)
+        return order
+
 
 class OrderOptionEntitiyFactory(OrderOptionFactory):
     @staticmethod
@@ -26,4 +42,9 @@ class OrderOptionEntitiyFactory(OrderOptionFactory):
 
         for ingredient in ingredients:
             option.add_ingredient(ingredient)
+        return option
+
+    @staticmethod
+    def restore_option(uuid: UUID, name: str):
+        option = OrderOptionEntitiy(uuid=uuid, name=name)
         return option
